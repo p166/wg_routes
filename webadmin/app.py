@@ -37,27 +37,14 @@ SCRIPT_CONFIG = {
 }
 
 
-def empty_stats() -> Dict[str, int]:
+def empty_stats() -> Dict[str, Optional[int]]:
     return {
         "wg_ipv4_total": 0,
         "wg_ipv6_total": 0,
         "dns_failed": 0,
-        "bypass_ipv4_total": 0,
+        # Display bypass value only when apply stage reported it in log.
+        "bypass_ipv4_total": None,
     }
-
-
-def count_bypass_entries() -> int:
-    path = EDITABLE_FILES["bypass"]
-    if not path.exists():
-        return 0
-
-    total = 0
-    for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
-        total += 1
-    return total
 
 
 @dataclass
@@ -79,11 +66,6 @@ class JobState:
             end = self.finished_at if self.finished_at is not None else time.time()
             duration_sec = round(end - self.started_at, 2)
 
-        merged_stats = empty_stats()
-        merged_stats.update(self.stats)
-        # Bypass count should reflect current config file, not only last apply log.
-        merged_stats["bypass_ipv4_total"] = count_bypass_entries()
-
         return {
             "status": self.status,
             "script": self.script,
@@ -95,7 +77,7 @@ class JobState:
             "exit_code": self.exit_code,
             "message": self.message,
             "log_path": self.log_path,
-            "stats": merged_stats,
+            "stats": self.stats,
         }
 
 
