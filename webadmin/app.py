@@ -46,11 +46,26 @@ def empty_stats() -> Dict[str, int]:
     }
 
 
+def count_bypass_entries() -> int:
+    path = EDITABLE_FILES["bypass"]
+    if not path.exists():
+        return 0
+
+    total = 0
+    for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        total += 1
+    return total
+
+
 @dataclass
 class JobState:
     status: str = "idle"
     script: str = "none"
     mode: str = "none"
+    stage: str = "none"
     started_at: Optional[float] = None
     finished_at: Optional[float] = None
     exit_code: Optional[int] = 0
@@ -64,17 +79,23 @@ class JobState:
             end = self.finished_at if self.finished_at is not None else time.time()
             duration_sec = round(end - self.started_at, 2)
 
+        merged_stats = empty_stats()
+        merged_stats.update(self.stats)
+        # Bypass count should reflect current config file, not only last apply log.
+        merged_stats["bypass_ipv4_total"] = count_bypass_entries()
+
         return {
             "status": self.status,
             "script": self.script,
             "mode": self.mode,
+            "stage": self.stage,
             "started_at": self.started_at,
             "finished_at": self.finished_at,
             "duration_sec": duration_sec,
             "exit_code": self.exit_code,
             "message": self.message,
             "log_path": self.log_path,
-            "stats": self.stats,
+            "stats": merged_stats,
         }
 
 
@@ -132,6 +153,27 @@ def build_command(script_key: str, mode: str) -> list[str]:
     return ["/bin/bash", script]
 
 
+def initial_stage(script_key: str, mode: str) -> str:
+    if script_key == "update":
+        if mode == "apply":
+            return "apply"
+        return "update"
+    if script_key == "install":
+        return "install"
+    return "none"
+
+
+def detect_stage_from_line(script_key: str, line: str) -> Optional[str]:
+    if script_key != "update":
+        return None
+
+    if "=== 1. Обновление списков" in line or "=== 1. ПРОПУСК обновления списков" in line:
+        return "update"
+    if "=== 2. Применение маршрутов" in line or "=== 2. ПРОПУСК применения маршрутов" in line:
+        return "apply"
+    return None
+
+
 def start_job(script_key: str, mode: str) -> tuple[bool, str]:
     global lock_fd
 
@@ -158,6 +200,7 @@ def start_job(script_key: str, mode: str) -> tuple[bool, str]:
         state.status = "running"
         state.script = script_key
         state.mode = mode
+        state.stage = initial_stage(script_key, mode)
         state.started_at = time.time()
         state.finished_at = None
         state.exit_code = None
@@ -198,6 +241,10 @@ def run_job_worker(command: list[str], script_key: str, mode: str, log_path: Pat
             if process.stdout is not None:
                 for line in process.stdout:
                     log_file.write(line)
+                    stage = detect_stage_from_line(script_key, line)
+                    if stage:
+                        with state_lock:
+                            state.stage = stage
             exit_code = process.wait()
     except Exception as exc:
         error_message = str(exc)
@@ -216,6 +263,7 @@ def run_job_worker(command: list[str], script_key: str, mode: str, log_path: Pat
             state.stats = stats
             if exit_code == 0 and not error_message:
                 state.status = "ok"
+                state.stage = "done"
                 state.message = "Завершено успешно"
             else:
                 state.status = "fail"
