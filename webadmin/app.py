@@ -237,7 +237,7 @@ def run_job_worker(command: list[str], script_key: str, mode: str, log_path: Pat
     finally:
         stats = parse_log_stats(log_path)
         with state_lock:
-            state.script = script_key
+            state.script = "none"
             state.mode = mode
             state.finished_at = time.time()
             state.exit_code = exit_code
