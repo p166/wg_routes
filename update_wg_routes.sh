@@ -27,6 +27,7 @@ MODE="$1"                             # режим: update / apply / all
 # exec >> "$LOGFILE" 2>&1
 
 BEGIN_DATE=$(date)
+bypass_count=0
 echo "=== Начало работы режим $MODE: $BEGIN_DATE ==="
 echo "   запуск: $0 $*"
 echo "   ENABLE_UPDATE=$ENABLE_UPDATE"
@@ -442,6 +443,8 @@ if [ "$ENABLE_APPLY" -eq 1 ] && [ -f "$WG_V6" ]; then
 else
     echo "   IPv6/подсетей в WG‑файле: $(wc -l < "$WG_V6" 2>/dev/null || echo 0)"
 fi
+
+echo "   bypass IPv4-подсетей: $bypass_count"
 
 echo "   Ошибки/пустые резолвы DNS: $FAILED_DNS"
 echo "   Список проблемных доменов: $FAILED_LOG"
