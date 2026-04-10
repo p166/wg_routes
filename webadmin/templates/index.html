@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>wg_routes admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <main class="container">
+      <header class="header">
+        <h1>wg_routes admin</h1>
+        <p>Редактирование файлов и запуск сценариев</p>
+      </header>
+
+      <section class="panel">
+        <h2>Статус</h2>
+        <div id="status-grid" class="status-grid">
+          <div><span class="k">Состояние:</span> <span id="s-status">{{ state.status }}</span></div>
+          <div><span class="k">Сценарий:</span> <span id="s-script">{{ state.script or '-' }}</span></div>
+          <div><span class="k">Режим:</span> <span id="s-mode">{{ state.mode or '-' }}</span></div>
+          <div><span class="k">Код выхода:</span> <span id="s-exit">{{ state.exit_code if state.exit_code is not none else '-' }}</span></div>
+          <div><span class="k">Длительность:</span> <span id="s-duration">{{ state.duration_sec if state.duration_sec is not none else '-' }}</span></div>
+          <div><span class="k">Лог:</span> <span id="s-log">{{ state.log_path or '-' }}</span></div>
+          <div class="full"><span class="k">Сообщение:</span> <span id="s-message">{{ state.message or '-' }}</span></div>
+        </div>
+
+        <h3>Статистика</h3>
+        <div class="status-grid">
+          <div><span class="k">IPv4 в WG:</span> <span id="st-ipv4">{{ state.stats.get('wg_ipv4_total', '-') if state.stats else '-' }}</span></div>
+          <div><span class="k">IPv6 в WG:</span> <span id="st-ipv6">{{ state.stats.get('wg_ipv6_total', '-') if state.stats else '-' }}</span></div>
+          <div><span class="k">DNS fail:</span> <span id="st-dns">{{ state.stats.get('dns_failed', '-') if state.stats else '-' }}</span></div>
+          <div><span class="k">Bypass IPv4:</span> <span id="st-bypass">{{ state.stats.get('bypass_ipv4_total', '-') if state.stats else '-' }}</span></div>
+        </div>
+      </section>
+
+      <section class="panel split">
+        <article>
+          <h2>Ruantiblock.input</h2>
+          <form action="{{ url_for('save_file', file_key='ruantiblock') }}" method="post">
+            <textarea name="content" rows="20">{{ ruantiblock_content }}</textarea>
+            <button type="submit">Сохранить</button>
+          </form>
+        </article>
+
+        <article>
+          <h2>wg_bypass_routes.txt</h2>
+          <form action="{{ url_for('save_file', file_key='bypass') }}" method="post">
+            <textarea name="content" rows="20">{{ bypass_content }}</textarea>
+            <button type="submit">Сохранить</button>
+          </form>
+        </article>
+      </section>
+
+      <section class="panel split">
+        <article>
+          <h2>Запуск update_wg_routes.sh</h2>
+          <form class="run-form" action="{{ url_for('run_script', script_key='update') }}" method="post">
+            <label for="update-mode">Режим</label>
+            <select id="update-mode" name="mode">
+              {% for mode in script_config['update']['modes'] %}
+              <option value="{{ mode }}">{{ mode }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit">Запустить</button>
+          </form>
+        </article>
+
+        <article>
+          <h2>Запуск install_awg.sh</h2>
+          <form class="run-form" action="{{ url_for('run_script', script_key='install') }}" method="post">
+            <input type="hidden" name="mode" value="default">
+            <button type="submit">Запустить install</button>
+          </form>
+        </article>
+      </section>
+    </main>
+
+    <script>
+      function valOrDash(v) {
+        if (v === null || v === undefined || v === "") return "-";
+        return v;
+      }
+
+      function updateStatus(data) {
+        document.getElementById("s-status").textContent = valOrDash(data.status);
+        document.getElementById("s-script").textContent = valOrDash(data.script);
+        document.getElementById("s-mode").textContent = valOrDash(data.mode);
+        document.getElementById("s-exit").textContent = valOrDash(data.exit_code);
+        document.getElementById("s-duration").textContent = valOrDash(data.duration_sec);
+        document.getElementById("s-log").textContent = valOrDash(data.log_path);
+        document.getElementById("s-message").textContent = valOrDash(data.message);
+
+        const stats = data.stats || {};
+        document.getElementById("st-ipv4").textContent = valOrDash(stats.wg_ipv4_total);
+        document.getElementById("st-ipv6").textContent = valOrDash(stats.wg_ipv6_total);
+        document.getElementById("st-dns").textContent = valOrDash(stats.dns_failed);
+        document.getElementById("st-bypass").textContent = valOrDash(stats.bypass_ipv4_total);
+      }
+
+      async function refreshStatus() {
+        try {
+          const r = await fetch("{{ url_for('job_status') }}", { cache: "no-store" });
+          const data = await r.json();
+          updateStatus(data);
+        } catch (_) {
+          // no-op
+        }
+      }
+
+      document.querySelectorAll(".run-form").forEach((form) => {
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const data = new FormData(form);
+          const r = await fetch(form.action, { method: "POST", body: data });
+          const body = await r.json();
+          alert(body.message);
+          refreshStatus();
+        });
+      });
+
+      setInterval(refreshStatus, 2000);
+      refreshStatus();
+    </script>
+  </body>
+</html>

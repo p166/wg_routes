@@ -1,0 +1,16 @@
+[Unit]
+Description=wg_routes Flask web admin
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/simakov/SOURCE/Projects/DigitalGardensWGRouters/wg_routes/webadmin
+ExecStart=/home/simakov/SOURCE/Projects/DigitalGardensWGRouters/wg_routes/webadmin/.venv/bin/python /home/simakov/SOURCE/Projects/DigitalGardensWGRouters/wg_routes/webadmin/app.py
+Restart=always
+RestartSec=2
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

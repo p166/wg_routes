@@ -96,6 +96,18 @@
 
 Все остальные подсети из `wg_destinations.txt` будут отправляться через `WG_IFACE`.
 
+### Проверка после apply
+
+После применения маршрутов быстро проверьте, куда реально идет трафик:
+
+```bash
+ip route get 10.3.3.200
+ip route | grep 10.3
+iptables -S FORWARD
+```
+
+Если для целевой подсети видите маршрут `via GATEWAY dev ETH_IFACE`, bypass работает.
+
 ## Установка AmneziaWG
 
 Скрипт `install_awg.sh`:
@@ -126,3 +138,43 @@ git checkout feature/render-wg-config-view
 - `I3`
 - `I4`
 - `I5`
+
+## Веб-админка (Flask)
+
+Добавлен минимальный веб-интерфейс в каталоге `webadmin`.
+
+Что умеет:
+- редактировать `Ruantiblock.input`;
+- редактировать `wg_bypass_routes.txt`;
+- запускать `update_wg_routes.sh` в режимах `all|update|apply`;
+- запускать `install_awg.sh`;
+- показывать только статус `running|ok|fail` и статистику, извлеченную из лога.
+
+### Быстрый запуск
+
+```bash
+cd webadmin
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python app.py
+```
+
+По умолчанию веб-интерфейс доступен на `http://0.0.0.0:8080`.
+
+### Примечания
+
+- Параллельные запуски скриптов блокируются lock-файлом `.wg_routes_admin.lock`.
+- Логи запусков пишутся в каталог `webadmin_logs`.
+- Для выполнения сетевых действий скриптов запускайте приложение с правами root.
+
+### Запуск через systemd
+
+В каталоге `webadmin` есть шаблон сервиса `wg-routes-webadmin.service`.
+
+```bash
+sudo cp webadmin/wg-routes-webadmin.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now wg-routes-webadmin.service
+sudo systemctl status wg-routes-webadmin.service
+```
