@@ -39,10 +39,9 @@ SCRIPT_CONFIG = {
 
 def empty_stats() -> Dict[str, Optional[int]]:
     return {
-        "wg_ipv4_total": 0,
-        "wg_ipv6_total": 0,
-        "dns_failed": 0,
-        # Display bypass value only when apply stage reported it in log.
+        "wg_ipv4_total": None,
+        "wg_ipv6_total": None,
+        "dns_failed": None,
         "bypass_ipv4_total": None,
     }
 
@@ -136,12 +135,9 @@ def build_command(script_key: str, mode: str) -> list[str]:
 
 
 def initial_stage(script_key: str, mode: str) -> str:
-    if script_key == "update":
-        if mode == "apply":
-            return "apply"
-        return "update"
-    if script_key == "install":
-        return "install"
+    cfg = SCRIPT_CONFIG.get(script_key)
+    if cfg is not None:
+        return os.path.basename(str(cfg["script"]))
     return "none"
 
 
@@ -178,9 +174,12 @@ def start_job(script_key: str, mode: str) -> tuple[bool, str]:
     log_path = LOG_DIR / f"job-{script_key}-{mode}-{job_ts}.log"
     command = build_command(script_key, mode)
 
+    script_path = str(cfg["script"])
+    script_basename = os.path.basename(script_path)
+
     with state_lock:
         state.status = "running"
-        state.script = script_key
+        state.script = script_basename
         state.mode = mode
         state.stage = initial_stage(script_key, mode)
         state.started_at = time.time()
