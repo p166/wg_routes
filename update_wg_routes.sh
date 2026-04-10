@@ -387,6 +387,16 @@ if [ "$ENABLE_APPLY" -eq 1 ] && [[ "$MODE" =~ (all|apply)$ ]]; then
             fi
         done < "$WG_DEST"
 
+        # Принудительно применяем bypass-сети через основной шлюз,
+        # даже если их нет в WG_DEST (например, чтобы перекрыть широкую сеть через WG).
+        if [ -s "$bypass_normalized_file" ]; then
+            while read -r bypass_net; do
+                [ -z "$bypass_net" ] && continue
+                echo "     - применяю bypass отдельно: $bypass_net -> via $GATEWAY dev $ETH_IFACE"
+                ip route replace "$bypass_net" via "$GATEWAY" dev "$ETH_IFACE"
+            done < "$bypass_normalized_file"
+        fi
+
         rm -f "$bypass_normalized_file"
     fi
 
