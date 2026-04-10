@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Dict, Optional
 
 from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask import Response, abort
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -303,3 +304,16 @@ def job_status():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8081, debug=False)
+
+
+# Новый эндпоинт для просмотра последнего лога
+@app.get("/job/log")
+def job_log():
+    with state_lock:
+        log_path = state.log_path
+    if not log_path or log_path == "нет":
+        return Response("Лог не найден", mimetype="text/plain")
+    abs_log = BASE_DIR / log_path
+    if not abs_log.exists():
+        return Response("Файл лога не найден", mimetype="text/plain")
+    return Response(abs_log.read_text(encoding="utf-8", errors="replace"), mimetype="text/plain")
