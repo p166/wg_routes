@@ -8,6 +8,7 @@ ENABLE_APPLY=1                        # 1 = включить, 0 = выключи
 INPUT=Ruantiblock.input               # единый файл: домены, IP/подсети (IPv4/IPv6)
 WG_DEST=wg_destinations.txt           # IPv4‑список для WG
 WG_V6=wg_v6_routes.txt                # IPv6‑подсети для маршрутов
+BYPASS_V4=wg_bypass_routes.txt        # IPv4‑подсети, которые идут через основной шлюз (минуя WG)
 DOMAINS=list_domains.txt              # только домены
 IPS=list_ips.txt                      # IP/подсети (IPv4 + IPv6)
 
@@ -137,12 +138,61 @@ normalize_input_token() {
     printf "%s\n" "$token"
 }
 
+# Нормализация IPv4 записи для bypass-файла: IP -> /32, CIDR -> адрес сети CIDR.
+normalize_bypass_ipv4_entry() {
+    local entry="$1"
+
+    if [[ "$entry" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+        printf "%s/32\n" "$entry"
+        return 0
+    fi
+
+    if [[ "$entry" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}/([0-9]{1,2})$ ]]; then
+        normalize_ipv4_cidr "$entry"
+        return $?
+    fi
+
+    return 1
+}
+
+prepare_bypass_ipv4_normalized_file() {
+    local bypass_file="$1"
+    local out_file="$2"
+    local line trimmed normalized
+
+    : > "$out_file"
+    [ -f "$bypass_file" ] || return 0
+
+    while read -r line; do
+        trimmed=$(echo "$line" | xargs)
+        [ -z "$trimmed" ] && continue
+        [[ "$trimmed" =~ ^# ]] && continue
+
+        if normalized=$(normalize_bypass_ipv4_entry "$trimmed"); then
+            echo "$normalized" >> "$out_file"
+        else
+            echo "     - bypass: пропускаю некорректную запись: $trimmed"
+        fi
+    done < "$bypass_file"
+
+    sort -u "$out_file" -o "$out_file"
+}
+
+is_bypass_ipv4_route() {
+    local net="$1"
+    local normalized_file="$2"
+
+    [ -s "$normalized_file" ] || return 1
+    grep -Fxq "$net" "$normalized_file"
+}
+
 detect_network_settings
 echo "   AUTO_DETECT_NETWORK=$AUTO_DETECT_NETWORK"
 echo "   WG_IFACE=$WG_IFACE"
 echo "   ETH_IFACE=$ETH_IFACE"
 echo "   GATEWAY=$GATEWAY"
 echo "   WG_V6_GATEWAY=$WG_V6_GATEWAY"
+echo "   BYPASS_V4=$BYPASS_V4"
 
 # === Помощь ===
 if [ -z "$MODE" ]; then
@@ -289,6 +339,11 @@ if [ "$ENABLE_APPLY" -eq 1 ] && [[ "$MODE" =~ (all|apply)$ ]]; then
     if [ ! -f "$WG_DEST" ]; then
         echo "     Файл $WG_DEST отсутствует, IPv4‑маршруты пропускаются."
     else
+        bypass_normalized_file=$(mktemp)
+        prepare_bypass_ipv4_normalized_file "$BYPASS_V4" "$bypass_normalized_file"
+        bypass_count=$(wc -l < "$bypass_normalized_file")
+        echo "     - bypass IPv4-подсетей: $bypass_count (файл $BYPASS_V4)"
+
         while read -r net; do
             [ -z "$net" ] && continue
 
@@ -323,9 +378,16 @@ if [ "$ENABLE_APPLY" -eq 1 ] && [[ "$MODE" =~ (all|apply)$ ]]; then
                 fi
             fi
 
-            echo "     - добавляю маршрут: $normalized_net -> dev $WG_IFACE"
-            ip route add "$normalized_net" dev "$WG_IFACE"
+            if is_bypass_ipv4_route "$normalized_net" "$bypass_normalized_file"; then
+                echo "     - bypass: $normalized_net -> via $GATEWAY dev $ETH_IFACE"
+                ip route replace "$normalized_net" via "$GATEWAY" dev "$ETH_IFACE"
+            else
+                echo "     - добавляю маршрут: $normalized_net -> dev $WG_IFACE"
+                ip route replace "$normalized_net" dev "$WG_IFACE"
+            fi
         done < "$WG_DEST"
+
+        rm -f "$bypass_normalized_file"
     fi
 
     echo "  2.6. Обновление IPv6‑маршрутов через WG..."
