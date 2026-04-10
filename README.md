@@ -84,3 +84,25 @@
 - применяет конфиг и включает сервис `awg-quick@wg0`.
 
 Перед запуском проверьте, что локально есть файл `~/amnezia_for_awg.conf`.
+
+## Подготовка конфига AWG
+
+## Получаем файл подключения из приложения AmneziaVPN в формате native AWG
+
+или
+
+## Можно конвертировать формат `vpn://` в `wg.conf`
+
+```bash
+git clone https://github.com/p166/config-decoder.git
+cd config-decoder
+git checkout feature/render-wg-config-view
+```
+
+Из итогового файла обязательно удаляем строки:
+- `DNS`
+- `I1`
+- `I2`
+- `I3`
+- `I4`
+- `I5`
