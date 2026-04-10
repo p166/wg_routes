@@ -76,7 +76,7 @@
 - на клиентах должен быть выставлен default gateway = IP этого хоста в LAN (или через DHCP);
 - этот хост должен иметь доступ в интернет через `ETH_IFACE` и активный интерфейс `WG_IFACE`.
 
-## Установка AmneziaWG (опционально)
+## Установка AmneziaWG
 
 Скрипт `install_awg.sh`:
 - копирует конфиг в `/etc/amnezia/amneziawg/wg0.conf`;
