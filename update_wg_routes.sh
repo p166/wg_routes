@@ -102,6 +102,41 @@ normalize_ipv4_cidr() {
         "$prefix"
 }
 
+# Нормализация входной строки: URL или host/path -> hostname/IP.
+normalize_input_token() {
+    local token="$1"
+    local work host
+
+    # URL с протоколом: берём только host-часть.
+    if [[ "$token" =~ ^[a-zA-Z][a-zA-Z0-9+.-]*:// ]]; then
+        work="${token#*://}"
+        work="${work##*@}"
+        host="${work%%/*}"
+        host="${host%%\?*}"
+        host="${host%%\#*}"
+
+        # Удаляем порт у hostname/IPv4. IPv6 в URL ожидается как [addr]:port.
+        if [[ "$host" =~ ^\[[0-9a-fA-F:]+\](:[0-9]+)?$ ]]; then
+            host="${host#[}"
+            host="${host%]}"
+            host="${host%%]:*}"
+        elif [[ "$host" =~ ^[^:]+:[0-9]+$ ]]; then
+            host="${host%%:*}"
+        fi
+
+        token="$host"
+    elif [[ "$token" == */* ]]; then
+        # Запись без схемы, но с путём (например github.com/copilot) -> github.com
+        work="${token%%/*}"
+        if [[ "$work" == *.* ]]; then
+            token="$work"
+        fi
+    fi
+
+    token="${token%/}"
+    printf "%s\n" "$token"
+}
+
 detect_network_settings
 echo "   AUTO_DETECT_NETWORK=$AUTO_DETECT_NETWORK"
 echo "   WG_IFACE=$WG_IFACE"
@@ -145,6 +180,13 @@ if [ "$ENABLE_UPDATE" -eq 1 ] && [[ "$MODE" =~ (all|update)$ ]]; then
             echo "     - пропускаю комментарий: $line"
             continue
         }
+
+        raw_line="$line"
+        line=$(normalize_input_token "$line")
+        [ -z "$line" ] && continue
+        if [ "$raw_line" != "$line" ]; then
+            echo "     - нормализую запись: $raw_line -> $line"
+        fi
 
         if echo "$line" | grep -q '\*'; then
             echo "     - домен (с *): $line"
@@ -217,17 +259,30 @@ if [ "$ENABLE_APPLY" -eq 1 ] && [[ "$MODE" =~ (all|apply)$ ]]; then
     ip route del default 2>/dev/null || true
     ip route add default via "$GATEWAY" dev "$ETH_IFACE"
 
-    echo "  2.2. Включаем IP‑форвардинг..."
+    echo "  2.2. Включаем режим шлюза/маршрутизатора..."
     sysctl -w net.ipv4.ip_forward=1
+    sysctl -w net.ipv4.conf.all.forwarding=1
+    sysctl -w net.ipv6.conf.all.forwarding=1
 
-    echo "  2.3. Очищаем старые iptables‑правила для wg0..."
+    # На роутере лучше не отправлять ICMP redirect клиентам.
+    sysctl -w net.ipv4.conf.all.send_redirects=0
+    sysctl -w net.ipv4.conf."$ETH_IFACE".send_redirects=0
+    sysctl -w net.ipv4.conf."$WG_IFACE".send_redirects=0
+
+    # Ослабляем reverse path filter для сценариев с VPN/NAT.
+    sysctl -w net.ipv4.conf.all.rp_filter=2
+    sysctl -w net.ipv4.conf."$ETH_IFACE".rp_filter=2
+    sysctl -w net.ipv4.conf."$WG_IFACE".rp_filter=2
+
+    echo "  2.3. Очищаем старые iptables‑правила для $WG_IFACE..."
     iptables -D FORWARD -i "$ETH_IFACE" -o "$WG_IFACE" -j ACCEPT 2>/dev/null || true
+    iptables -D FORWARD -i "$WG_IFACE" -o "$ETH_IFACE" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || true
     iptables -D FORWARD -i "$WG_IFACE" -o "$ETH_IFACE" -j ACCEPT 2>/dev/null || true
     iptables -t nat -D POSTROUTING -o "$WG_IFACE" -j MASQUERADE 2>/dev/null || true
 
-    echo "  2.4. Добавляем новые правила для wg0..."
+    echo "  2.4. Добавляем новые правила для $WG_IFACE..."
     iptables -A FORWARD -i "$ETH_IFACE" -o "$WG_IFACE" -j ACCEPT
-    iptables -A FORWARD -i "$WG_IFACE" -o "$ETH_IFACE" -j ACCEPT
+    iptables -A FORWARD -i "$WG_IFACE" -o "$ETH_IFACE" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
     iptables -t nat -A POSTROUTING -o "$WG_IFACE" -j MASQUERADE
 
     echo "  2.5. Обновление IPv4‑маршрутов через WG..."
