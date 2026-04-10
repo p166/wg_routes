@@ -23,11 +23,7 @@
           <div><span class="k">Код выхода:</span> <span id="s-exit">{{ state.exit_code if state.exit_code is not none else '-' }}</span></div>
           <div><span class="k">Длительность:</span> <span id="s-duration">{{ state.duration_sec if state.duration_sec is not none else '-' }}</span></div>
           <div><span class="k">Лог:</span> <span id="s-log">
-            {% if state.log_path and state.log_path != '-' and state.log_path != 'нет' %}
-              <a href="{{ url_for('job_log') }}" target="_blank">{{ state.log_path }}</a>
-            {% else %}
-              -
-            {% endif %}
+            <a href="/job/log" target="_blank">{{ state.log_path if state.log_path and state.log_path != '-' and state.log_path != 'нет' else 'лог' }}</a>
           </span></div>
           <div class="full"><span class="k">Сообщение:</span> <span id="s-message">{{ state.message or '-' }}</span></div>
         </div>
@@ -90,13 +86,16 @@
       }
 
       function updateStatus(data) {
+
         document.getElementById("s-status").textContent = valOrDash(data.status);
         document.getElementById("s-script").textContent = valOrDash(data.script);
         document.getElementById("s-mode").textContent = valOrDash(data.mode);
         document.getElementById("s-stage").textContent = valOrDash(data.stage);
         document.getElementById("s-exit").textContent = valOrDash(data.exit_code);
         document.getElementById("s-duration").textContent = valOrDash(data.duration_sec);
-        document.getElementById("s-log").textContent = valOrDash(data.log_path);
+        // Ссылка на лог с именем файла (или 'лог', если нет)
+        let logName = (data.log_path && data.log_path !== '-' && data.log_path !== 'нет') ? data.log_path : 'лог';
+        document.getElementById("s-log").innerHTML = '<a href="/job/log" target="_blank">' + logName + '</a>';
         document.getElementById("s-message").textContent = valOrDash(data.message);
 
         const stats = data.stats || {};
