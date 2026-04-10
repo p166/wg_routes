@@ -243,6 +243,8 @@ def run_job_worker(command: list[str], script_key: str, mode: str, log_path: Pat
             state.finished_at = time.time()
             state.exit_code = exit_code
             state.stats = stats
+            # log_path сохраняем всегда!
+            state.log_path = str(log_path.relative_to(BASE_DIR))
             if exit_code == 0 and not error_message:
                 state.status = "ok"
                 state.stage = "done"
