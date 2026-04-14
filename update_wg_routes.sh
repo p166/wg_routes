@@ -282,7 +282,10 @@ if [ "$ENABLE_UPDATE" -eq 1 ] && [[ "$MODE" =~ (all|update)$ ]]; then
         [ -z "$clean_domain" ] || [ "$clean_domain" = "." ] && continue
 
         echo "       резолв: $clean_domain"
-        try_resolve=$(dig +short +time=2 +tries=1 "$clean_domain" A 2>/dev/null | \
+
+        # Всегда резолвим только через DNS внутри туннеля (10.8.1.1)
+        WG_DNS="10.8.1.1"
+        try_resolve=$(dig @"$WG_DNS" +short +time=2 +tries=1 "$clean_domain" A 2>/dev/null | \
             grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' || echo "")
 
         if [ -z "$try_resolve" ]; then
