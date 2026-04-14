@@ -265,6 +265,13 @@ if [ "$ENABLE_UPDATE" -eq 1 ] && [[ "$MODE" =~ (all|update)$ ]]; then
     count_ipv4=$(wc -l < "$WG_DEST")
     echo "     - добавлено IPv4/подсетей из файла: $count_ipv4"
 
+
+    echo "     - временно перенаправляю default route через wg0 на время резолва..."
+    # Сохраняем текущий default route
+    OLD_DEFAULT=$(ip route show default | head -n1)
+    ip route del default 2>/dev/null || true
+    ip route add default dev "$WG_IFACE"
+
     echo "     - резолв доменов в IPv4:"
     FAILED_DNS=0
     while read -r domain; do
@@ -289,6 +296,12 @@ if [ "$ENABLE_UPDATE" -eq 1 ] && [[ "$MODE" =~ (all|update)$ ]]; then
             done
         fi
     done < "$DOMAINS"
+
+    # Возвращаем default route на основной шлюз
+    if [ -n "$OLD_DEFAULT" ]; then
+        ip route del default 2>/dev/null || true
+        ip route add $OLD_DEFAULT
+    fi
 
     sort -u "$WG_DEST" -o "$WG_DEST"
     final_ipv4=$(wc -l < "$WG_DEST")

@@ -304,12 +304,9 @@ def job_status():
     return jsonify(current)
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8081, debug=False)
-
 
 # Новый эндпоинт для просмотра последнего лога
-@app.get("/job/log")
+@app.get("/job/log", endpoint="job_log")
 def job_log():
     with state_lock:
         log_path = state.log_path
@@ -319,3 +316,6 @@ def job_log():
     if not abs_log.exists():
         return Response("Файл лога не найден", mimetype="text/plain")
     return Response(abs_log.read_text(encoding="utf-8", errors="replace"), mimetype="text/plain")
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8081, debug=False)

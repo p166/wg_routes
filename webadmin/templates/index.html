@@ -41,8 +41,19 @@
         <article>
           <h2>Ruantiblock.input</h2>
           <form action="{{ url_for('save_file', file_key='ruantiblock') }}" method="post">
-            <textarea name="content" rows="20">{{ ruantiblock_content }}</textarea>
-            <button type="submit">Сохранить</button>
+            <textarea name="content" id="ruantiblock-textarea" rows="20">{{ ruantiblock_content }}</textarea>
+            <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+              <button type="submit">Сохранить</button>
+              <button type="button" id="ruantiblock-clear" style="background:#ffe0e0;border:1px solid #f88;padding:4px 10px;border-radius:4px;">Очистить</button>
+              <label style="margin:0;cursor:pointer;">
+                <input type="file" id="foxyproxy-file" accept="application/json" style="display:none">
+                <span style="background:#eee;border:1px solid #ccc;padding:4px 10px;border-radius:4px;">Импортировать FoxyProxy</span>
+              </label>
+              <label style="margin:0;cursor:pointer;">
+                <input type="file" id="list-file" accept="text/plain" style="display:none">
+                <span style="background:#eef;border:1px solid #88f;padding:4px 10px;border-radius:4px;">Импортировать список</span>
+              </label>
+            </div>
           </form>
         </article>
 
@@ -80,6 +91,74 @@
     </main>
 
     <script>
+
+      // Кнопка очистить
+      document.getElementById("ruantiblock-clear").onclick = function() {
+        if (confirm("Очистить содержимое?")) {
+          document.getElementById("ruantiblock-textarea").value = "";
+        }
+      };
+
+      // Импорт простого списка
+      document.getElementById("list-file").addEventListener("change", async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        let text = await file.text();
+        let lines = text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+        if (!lines.length) {
+          alert("В файле нет строк");
+          return;
+        }
+        const textarea = document.getElementById("ruantiblock-textarea");
+        let existing = textarea.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+        let added = 0;
+        for (const p of lines) {
+          if (!existing.includes(p)) {
+            existing.push(p);
+            added++;
+          }
+        }
+        textarea.value = existing.join("\n");
+        alert("Импортировано строк: " + added);
+      });
+
+            document.getElementById("foxyproxy-file").addEventListener("change", async function(e) {
+              const file = e.target.files[0];
+              if (!file) return;
+              let text = await file.text();
+              let json;
+              try {
+                json = JSON.parse(text);
+              } catch {
+                alert("Ошибка: не удалось разобрать JSON");
+                return;
+              }
+              let patterns = [];
+              if (json.data && Array.isArray(json.data)) {
+                for (const proxy of json.data) {
+                  if (proxy.include && Array.isArray(proxy.include)) {
+                    for (const inc of proxy.include) {
+                      if (inc.pattern && inc.active !== false) patterns.push(inc.pattern);
+                    }
+                  }
+                }
+              }
+              if (!patterns.length) {
+                alert("В файле не найдено ни одного pattern");
+                return;
+              }
+              const textarea = document.getElementById("ruantiblock-textarea");
+              let existing = textarea.value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+              let added = 0;
+              for (const p of patterns) {
+                if (!existing.includes(p)) {
+                  existing.push(p);
+                  added++;
+                }
+              }
+              textarea.value = existing.join("\n");
+              alert("Импортировано паттернов: " + added);
+            });
       function valOrDash(v) {
         if (v === null || v === undefined || v === "") return "-";
         return v;
