@@ -13,7 +13,7 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 SSH_HOST = os.getenv("SSH_HOST")
 SSH_PORT = int(os.getenv("SSH_PORT", 22))
 SSH_USER = os.getenv("SSH_USER")
-SSH_KEY_PATH = os.getenv("SSH_KEY_PATH")
+SSH_KEY_PATH = os.path.expanduser(os.getenv("SSH_KEY_PATH"))
 
 # S1 paths
 S1_WG_DESTINATIONS_PATH = os.getenv("S1_WG_DESTINATIONS_PATH", "wg_destinations.txt")

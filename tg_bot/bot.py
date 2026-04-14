@@ -45,14 +45,14 @@ async def start_handler(message: types.Message):
         "🤖 <b>WireGuard Routes Manager Bot</b>\n\n"
         "Команды:\n"
         "• <code>/add domain.com</code> или просто напишите домен - резолвить домен\n"
-        "• <code>/restart</code> - перезапустить туннель (применить изменения)\n"
+        "• <code>/restart-wg</code> - перезапустить туннель (применить изменения)\n"
         "• <code>/status</code> - показать текущий список IP\n"
         "• <code>/help</code> - справка\n\n"
         "📝 <b>Как использовать:</b>\n"
         "1. Отправьте домены которые нужно добавить\n"
         "2. Бот резолвит домены и покажет найденные IP\n"
         "3. IP автоматически добавляются в wg_destinations.txt\n"
-        "4. Когда все домены добавлены, выполните /restart",
+        "4. Когда все домены добавлены, выполните /restart-wg",
         parse_mode="HTML"
     )
 
@@ -66,7 +66,7 @@ async def help_handler(message: types.Message):
         "📚 <b>Справка по командам:</b>\n\n"
         "<b>/add domain.com</b> или просто текст\n"
         "  Резолвит домен и добавляет IP в wg_destinations.txt\n\n"
-        "<b>/restart</b>\n"
+        "<b>/restart-wg</b>\n"
         "  Применяет AllowedIPs и перезапускает туннель\n"
         "  (выполняет update_allowedips_awg.sh на S1)\n\n"
         "<b>/status</b>\n"
@@ -76,7 +76,7 @@ async def help_handler(message: types.Message):
         "⚠️ <b>Важно:</b>\n"
         "• Домены резолвятся локально (на S2)\n"
         "• IP добавляются через SSH на S1\n"
-        "• Изменения не применяются до /restart\n"
+        "• Изменения не применяются до /restart-wg\n"
         "• Дедупликация IP выполняется на S1",
         parse_mode="HTML"
     )
@@ -208,8 +208,8 @@ async def main():
     dp.message.register(help_handler, Command("help"))
     dp.message.register(status_handler, Command("status"))
     dp.message.register(clear_handler, Command("clear"))
-    dp.message.register(restart_handler, Command("restart"))
-    dp.message.register(add_domain_handler, ~Command("restart"))
+    dp.message.register(restart_handler, Command("restart-wg"))
+    dp.message.register(add_domain_handler, ~Command("restart-wg"))
     
     # Register callback queries
     dp.callback_query.register(restart_confirm_callback, F.data == "restart_confirm")
