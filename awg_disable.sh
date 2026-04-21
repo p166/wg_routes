@@ -1,0 +1,1 @@
+sudo systemctl disable awg-quick@wg0

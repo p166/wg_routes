@@ -1,0 +1,1 @@
+sudo systemctl enable awg-quick@wg0
