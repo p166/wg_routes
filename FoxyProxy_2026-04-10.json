@@ -1,0 +1,443 @@
+{
+  "mode": "disable",
+  "sync": false,
+  "autoBackup": false,
+  "passthrough": "",
+  "theme": "",
+  "container": {},
+  "commands": {
+    "setProxy": "",
+    "setTabProxy": "",
+    "includeHost": "",
+    "excludeHost": ""
+  },
+  "data": [
+    {
+      "active": true,
+      "title": "local proxy",
+      "type": "socks5",
+      "hostname": "192.168.0.76",
+      "port": "3128",
+      "username": "",
+      "password": "",
+      "cc": "",
+      "city": "",
+      "color": "#da70d6",
+      "pac": "",
+      "pacString": "",
+      "proxyDNS": true,
+      "include": [
+        {
+          "type": "wildcard",
+          "title": "github",
+          "pattern": "github.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "githubusercontent",
+          "pattern": "githubusercontent.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "steam",
+          "pattern": "steampowered.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "steam store",
+          "pattern": "store.steampowered.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "youtube",
+          "pattern": "youtube.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "ytimg",
+          "pattern": "ytimg.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "googlevideo",
+          "pattern": "googlevideo.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "youtu.be",
+          "pattern": "youtu.be",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "instagram",
+          "pattern": "instagram.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "facebook",
+          "pattern": "facebook.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "twitter",
+          "pattern": "twitter.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "tiktok",
+          "pattern": "tiktok.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "tiktokv",
+          "pattern": "tiktokv.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "reddit",
+          "pattern": "reddit.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "habr",
+          "pattern": "habr.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "feedly",
+          "pattern": "feedly.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "api.feedly",
+          "pattern": "api.feedly.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "notion",
+          "pattern": "notion.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "notion.so",
+          "pattern": "notion.so",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "atlassian",
+          "pattern": "atlassian.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "cloudflare",
+          "pattern": "cloudflare.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "cloudflareaccess",
+          "pattern": "cloudflareaccess.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "ngrok",
+          "pattern": "ngrok.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "n8n",
+          "pattern": "n8n.io",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "n8n cloud",
+          "pattern": "n8n.cloud",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "roblox",
+          "pattern": "roblox.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "epicgames",
+          "pattern": "epicgames.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "rustdesk",
+          "pattern": "rustdesk.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "qt",
+          "pattern": "qt.io",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "qt-project",
+          "pattern": "qt-project.org",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "download qt",
+          "pattern": "download.qt.io",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "graylog",
+          "pattern": "graylog.org",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "docs.graylog",
+          "pattern": "docs.graylog.org",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "launchpad",
+          "pattern": "launchpad.net",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "linuxmint",
+          "pattern": "linuxmint.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "reactos",
+          "pattern": "reactos.org",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "rutracker",
+          "pattern": "rutracker.org",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "4pda",
+          "pattern": "4pda.to",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "livejournal",
+          "pattern": "livejournal.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "perplexity",
+          "pattern": "perplexity.ai",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "deepseek",
+          "pattern": "deepseek.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "openai alt",
+          "pattern": "chat.deepseek.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "zerotier",
+          "pattern": "zerotier.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "netbird",
+          "pattern": "netbird.io",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "calendly",
+          "pattern": "calendly.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "apple",
+          "pattern": "apple.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "icloud",
+          "pattern": "icloud.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "chatgpt.com",
+          "pattern": "https://chatgpt.com/",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "",
+          "pattern": "docs.amnezia.org",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "www.perplexity.ai",
+          "pattern": "https://www.perplexity.ai/",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "",
+          "pattern": "apify.com/",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "feedly.com",
+          "pattern": "https://feedly.com/",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "exler.es",
+          "pattern": "https://exler.es/",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "",
+          "pattern": "https://www.firecrawl.dev/",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "www.google.com",
+          "pattern": "https://www.google.com/",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "",
+          "pattern": "https://jsonformatter.org/",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "",
+          "pattern": "cloudflareinsights.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "",
+          "pattern": "rutracker.cc",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "novynovgorod.substack.com",
+          "pattern": "https://novynovgorod.substack.com/",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "",
+          "pattern": "steamdb.info/",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "modbusconnect.com",
+          "pattern": "https://modbusconnect.com/",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "",
+          "pattern": "media.ixbt.site",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "",
+          "pattern": "voffka.com",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "",
+          "pattern": "t.me",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "",
+          "pattern": "telegram.org",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "",
+          "pattern": "rpghq.org",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "",
+          "pattern": "amnezia.org",
+          "active": true
+        },
+        {
+          "type": "wildcard",
+          "title": "",
+          "pattern": "www.exler.es",
+          "active": true
+        }
+      ],
+      "exclude": [],
+      "tabProxy": []
+    }
+  ]
+}

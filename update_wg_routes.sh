@@ -218,7 +218,7 @@ if [ "$ENABLE_UPDATE" -eq 1 ] && [[ "$MODE" =~ (all|update)$ ]]; then
     echo "  1.1. Очистка временных файлов..."
     : > "$DOMAINS"
     : > "$IPS"
-    : > "$WG_DEST"
+    # : > "$WG_DEST"
     : > "$WG_V6"
     : > "$FAILED_LOG"
     echo "     - очищены: $DOMAINS, $IPS, $WG_DEST, $WG_V6, $FAILED_LOG"
@@ -260,6 +260,7 @@ if [ "$ENABLE_UPDATE" -eq 1 ] && [[ "$MODE" =~ (all|update)$ ]]; then
     sort -u "$DOMAINS" -o "$DOMAINS"
 
     echo "  1.3. Сбор IPv4‑адресов для WG..."
+    : > "$WG_DEST"
     cat "$IPS" | grep -v ':' >> "$WG_DEST"
     cat "$IPS" | grep -E '^[0-9a-fA-F:]+/[0-9]+$' > "$WG_V6"
     count_ipv4=$(wc -l < "$WG_DEST")
@@ -308,6 +309,11 @@ if [ "$ENABLE_UPDATE" -eq 1 ] && [[ "$MODE" =~ (all|update)$ ]]; then
 
     sort -u "$WG_DEST" -o "$WG_DEST"
     final_ipv4=$(wc -l < "$WG_DEST")
+    
+    basename_wg=$(basename "$WG_DEST")
+    awk -F'[./]' '{print $1"."$2".0.0/16"}'    "$WG_DEST" | sort -u > "${basename_wg%.*}_16.txt"
+    awk -F'[./]' '{print $1"."$2"."$3".0/24"}' "$WG_DEST" | sort -u > "${basename_wg%.*}_24.txt"  
+
     echo "     - итого IPv4/подсетей после deduplication: $final_ipv4"
 
 elif [ "$ENABLE_UPDATE" -eq 0 ] && [[ "$MODE" =~ (all|update)$ ]]; then

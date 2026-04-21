@@ -36,7 +36,7 @@ class SSHHandler:
             # Add IPv4
             if ipv4_list:
                 for ip in ipv4_list:
-                    cmd = f'echo "{ip}" >> {S1_WG_DESTINATIONS_PATH}'
+                    cmd = f'echo "{ip}/32" >> {S1_WG_DESTINATIONS_PATH}'
                     stdin, stdout, stderr = self.ssh_client.exec_command(cmd)
                     stdout.channel.recv_exit_status()
                     if stderr:
@@ -60,7 +60,7 @@ class SSHHandler:
                 msg += f"  • IPv4: {len(ipv4_list)} адресов\n"
             if ipv6_list:
                 msg += f"  • IPv6: {len(ipv6_list)} адресов\n"
-            msg += "\n⏳ Ожидайте команду /restart для применения"
+            msg += "\n⏳ Отправьте команду /restart-wg для применения"
             
             return True, msg
         
